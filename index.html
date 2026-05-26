@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="hi"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>एरियर गणना और विपत्र जेनरेटर</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700&display=swap');
+
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #3b82f6;
+            --bg-color: #f3f4f6;
+            --border-color: #d1d5db;
+            --text-color: #1f2937;
+        }
+
+        body {
+            font-family: 'Mukta', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+        }
+
+        /* Form Container */
+        .form-container {
+            background-color: #ffffff;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            padding: 25px;
+            max-width: 1250px;
+            margin: 0 auto 30px auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-title {
+            color: var(--primary-color);
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            border-bottom: 3px double var(--primary-color);
+            padding-bottom: 10px;
+        }
+
+        /* Grid inputs */
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .input-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-box label {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 6px;
+            color: var(--primary-color);
+        }
+
+        .input-box input[type="text"] {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-box input[type="text"]:focus {
+            border-color: var(--secondary-color);
+        }
+
+        /* Table Styling */
+        .table-wrapper {
+            overflow-x: auto;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        table.form-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+            background: white;
+        }
+
+        table.form-table th, table.form-table td {
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        table.form-table th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        table.form-table tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        .m-check {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        select, input[type="number"] {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: #fff;
+            outline: none;
+        }
+
+        .custom-basic-input {
+            width: 100px;
+            margin-top: 5px;
+        }
+
+        .hra-custom-input {
+            width: 70px;
+            margin-top: 5px;
+            padding: 6px;
+            font-size: 13px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+        }
+
+        /* Action Buttons */
+        .btn-panel {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            background-color: #1e40af;
+        }
+
+        .btn-download {
+            background-color: #10b981;
+        }
+
+        .btn-download:hover {
+            background-color: #059669;
+        }
+
+        .btn-back {
+            background-color: #ef4444;
+        }
+
+        .btn-back:hover {
+            background-color: #dc2626;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Error Banner */
+        .error-banner {
+            background-color: #fee2e2;
+            border: 1px solid #f87171;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Interactive Screen Preview Container */
+        #previewContainer {
+            background-color: #4b5563;
+            padding: 30px 10px;
+            min-height: 100vh;
+        }
+
+        .preview-header-bar {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 6px;
+            max-width: 1050px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+        }
+
+        /* Landscape Page Sheet */
+        #printSection {
+            background-color: #ffffff;
+            width: 297mm;
+            min-height: 210mm;
+            margin: 0 auto;
+            padding: 15mm 15mm;
+            box-sizing: border-box;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            font-family: Arial, sans-serif;
+            color: #000000;
+        }
+
+        /* PDF Official Header Style */
+        .pdf-header-block {
+            border: 1px solid #000;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .pdf-header-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .pdf-header-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .pdf-header-cell {
+            flex: 1;
+        }
+
+        .pdf-header-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            text-decoration: underline;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        /* Table inside PDF */
+        table.pdf-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+            text-align: center;
+        }
+
+        table.pdf-table th, table.pdf-table td {
+            border: 1px solid #000;
+            padding: 5px 3px;
+        }
+
+        table.pdf-table th {
+            background-color: #f3f4f6;
+            font-weight: bold;
+        }
+
+        .footer-declaration {
+            margin-top: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: 'Mukta', Arial, sans-serif;
+        }
+
+        /* Signatures block */
+        .pdf-signatures {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: 'Mukta', Arial, sans-serif;
+        }
+
+        .sig-block {
+            width: 30%;
+            text-align: center;
+        }
+
+        /* PRINT STYLES */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 8mm;
+            }
+            body {
+                background-color: #ffffff;
+                padding: 0;
+                margin: 0;
+            }
+            .no-print, #downloadHtmlBtn, #mainFormContainer, .preview-header-bar {
+                display: none !important;
+            }
+            #previewContainer {
+                background-color: transparent;
+                padding: 0;
+                min-height: auto;
+            }
+            #printSection {
+                width: 100%;
+                min-height: auto;
+                padding: 0;
+                box-shadow: none;
+                margin: 0;
+                border: none;
+            }
+            table.pdf-table th {
+                background-color: #e5e7eb !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Entry Form -->
+    <div class="form-container no-print" id="mainFormContainer">
+        <div class="form-title">एरियर गणना एवं विपत्र फॉर्म</div>
+
+        <div id="errorBox" class="error-banner hidden"></div>
+
+        <!-- Personal Header Inputs -->
+        <div class="input-grid">
+            <div class="input-box">
+                <label>शिक्षक का नाम (Name)</label>
+                <input type="text" id="tName" placeholder="शिक्षक का नाम लिखें" value="">
+            </div>
+            <div class="input-box">
+                <label>वर्ग (Class)</label>
+                <input type="text" id="tClass" placeholder="जैसे: 6-8 Mathematics &amp; Science" value="">
+            </div>
+            <div class="input-box">
+                <label>प्रान नंबर (PRAN)</label>
+                <input type="text" id="tPran" placeholder="PRAN नंबर लिखें" value="">
+            </div>
+            <div class="input-box">
+                <label>विद्यालय का नाम (School)</label>
+                <input type="text" id="tSchool" placeholder="विद्यालय का नाम लिखें" value="">
+            </div>
+            <div class="input-box">
+                <label>यू-डायस कोड (UDISE)</label>
+                <input type="text" id="tUdise" placeholder="UDISE Code" value="">
+            </div>
+            <div class="input-box">
+                <label>प्रखंड का नाम (Block)</label>
+                <input type="text" id="tBlock" placeholder="प्रखंड का नाम लिखें" value="">
+            </div>
+            <div class="input-box">
+                <label>जिला का नाम (District)</label>
+                <input type="text" id="tDistrict" placeholder="जिला का नाम लिखें" value="">
+            </div>
+            <div class="input-box">
+                <label>वर्ष (Year)</label>
+                <select id="tYear" onchange="updateYearLabels()" style="padding:10px; border:1px solid #d1d5db; border-radius:4px; font-size:15px; outline:none;">
+                    <option value="2025" selected>2025</option>
+                    <option value="2026">2026</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Interactive Static Table (Completely fixes disappearing months) -->
+        <div class="table-wrapper">
+            <table class="form-table" id="monthTable">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">चुनें</th>
+                        <th>महीना (Month)</th>
+                        <th>मूल वेतन (Basic)</th>
+                        <th>देय (Claimed) DA</th>
+                        <th>प्राप्त (Drawn) DA</th>
+                        <th>देय (Claimed) HRA</th>
+                        <th>प्राप्त (Drawn) HRA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Row 1: Jan -->
+                    <tr data-month="January-2025" data-index="0">
+                        <td><input type="checkbox" class="m-check" id="chk_0" checked="checked"></td>
+                        <td><b>January-2025</b></td>
+                        <td>
+                            <select class="m-basic" onchange="toggleCustom(this, 0)">
+                                <option value="25000">25000</option>
+                                <option value="28000" selected="selected">28000</option>
+                                <option value="30000">30000</option>
+                                <option value="31000">31000</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" id="custom_basic_0" class="custom-basic-input hidden" placeholder="Enter" value="">
+                        </td>
+                        <td>
+                            <select class="m-c-da">
+                                <option value="50">50%</option>
+                                <option value="55" selected="selected">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-w-da">
+                                <option value="50" selected="selected">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-c-hra" onchange="toggleHRACustom(this, 'c')">
+                                <option value="4">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5" selected="selected">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                        <td>
+                            <select class="m-w-hra" onchange="toggleHRACustom(this, 'w')">
+                                <option value="4" selected="selected">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                    </tr>
+                    <!-- Row 2: Feb -->
+                    <tr data-month="February-2025" data-index="1">
+                        <td><input type="checkbox" class="m-check" id="chk_1" checked="checked"></td>
+                        <td><b>February-2025</b></td>
+                        <td>
+                            <select class="m-basic" onchange="toggleCustom(this, 1)">
+                                <option value="25000">25000</option>
+                                <option value="28000" selected="selected">28000</option>
+                                <option value="30000">30000</option>
+                                <option value="31000">31000</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" id="custom_basic_1" class="custom-basic-input hidden" placeholder="Enter" value="">
+                        </td>
+                        <td>
+                            <select class="m-c-da">
+                                <option value="50">50%</option>
+                                <option value="55" selected="selected">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-w-da">
+                                <option value="50" selected="selected">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-c-hra" onchange="toggleHRACustom(this, 'c')">
+                                <option value="4">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5" selected="selected">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                        <td>
+                            <select class="m-w-hra" onchange="toggleHRACustom(this, 'w')">
+                                <option value="4" selected="selected">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                    </tr>
+                    <!-- Row 3: Mar -->
+                    <tr data-month="March-2025" data-index="2">
+                        <td><input type="checkbox" class="m-check" id="chk_2" checked="checked"></td>
+                        <td><b>March-2025</b></td>
+                        <td>
+                            <select class="m-basic" onchange="toggleCustom(this, 2)">
+                                <option value="25000">25000</option>
+                                <option value="28000" selected="selected">28000</option>
+                                <option value="30000">30000</option>
+                                <option value="31000">31000</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" id="custom_basic_2" class="custom-basic-input hidden" placeholder="Enter" value="">
+                        </td>
+                        <td>
+                            <select class="m-c-da">
+                                <option value="50">50%</option>
+                                <option value="55" selected="selected">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-w-da">
+                                <option value="50" selected="selected">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-c-hra" onchange="toggleHRACustom(this, 'c')">
+                                <option value="4">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5" selected="selected">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                        <td>
+                            <select class="m-w-hra" onchange="toggleHRACustom(this, 'w')">
+                                <option value="4" selected="selected">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                    </tr>
+                    <!-- Row 4: Apr -->
+                    <tr data-month="April-2025" data-index="3">
+                        <td><input type="checkbox" class="m-check" id="chk_3" checked="checked"></td>
+                        <td><b>April-2025</b></td>
+                        <td>
+                            <select class="m-basic" onchange="toggleCustom(this, 3)">
+                                <option value="25000">25000</option>
+                                <option value="28000" selected="selected">28000</option>
+                                <option value="30000">30000</option>
+                                <option value="31000">31000</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" id="custom_basic_3" class="custom-basic-input hidden" placeholder="Enter" value="">
+                        </td>
+                        <td>
+                            <select class="m-c-da">
+                                <option value="50">50%</option>
+                                <option value="55" selected="selected">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-w-da">
+                                <option value="50" selected="selected">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-c-hra" onchange="toggleHRACustom(this, 'c')">
+                                <option value="4">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5" selected="selected">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                        <td>
+                            <select class="m-w-hra" onchange="toggleHRACustom(this, 'w')">
+                                <option value="4" selected="selected">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                    </tr>
+                    <!-- Row 5: May -->
+                    <tr data-month="May-2025" data-index="4">
+                        <td><input type="checkbox" class="m-check" id="chk_4" checked="checked"></td>
+                        <td><b>May-2025</b></td>
+                        <td>
+                            <select class="m-basic" onchange="toggleCustom(this, 4)">
+                                <option value="25000">25000</option>
+                                <option value="28000" selected="selected">28000</option>
+                                <option value="30000">30000</option>
+                                <option value="31000">31000</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" id="custom_basic_4" class="custom-basic-input hidden" placeholder="Enter" value="">
+                        </td>
+                        <td>
+                            <select class="m-c-da">
+                                <option value="50">50%</option>
+                                <option value="55" selected="selected">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-w-da">
+                                <option value="50" selected="selected">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-c-hra" onchange="toggleHRACustom(this, 'c')">
+                                <option value="4">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5" selected="selected">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                        <td>
+                            <select class="m-w-hra" onchange="toggleHRACustom(this, 'w')">
+                                <option value="4" selected="selected">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                    </tr>
+                    <!-- Row 6: June -->
+                    <tr data-month="June-2025" data-index="5">
+                        <td><input type="checkbox" class="m-check" id="chk_5" checked="checked"></td>
+                        <td><b>June-2025</b></td>
+                        <td>
+                            <select class="m-basic" onchange="toggleCustom(this, 5)">
+                                <option value="25000">25000</option>
+                                <option value="28000" selected="selected">28000</option>
+                                <option value="30000">30000</option>
+                                <option value="31000">31000</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" id="custom_basic_5" class="custom-basic-input hidden" placeholder="Enter" value="">
+                        </td>
+                        <td>
+                            <select class="m-c-da">
+                                <option value="50">50%</option>
+                                <option value="55" selected="selected">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-w-da">
+                                <option value="50" selected="selected">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-c-hra" onchange="toggleHRACustom(this, 'c')">
+                                <option value="4">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5" selected="selected">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                        <td>
+                            <select class="m-w-hra" onchange="toggleHRACustom(this, 'w')">
+                                <option value="4" selected="selected">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                    </tr>
+                    <!-- Row 7: July (DA 58% Default) -->
+                    <tr data-month="July-2025" data-index="6">
+                        <td><input type="checkbox" class="m-check" id="chk_6" checked="checked"></td>
+                        <td><b>July-2025</b></td>
+                        <td>
+                            <select class="m-basic" onchange="toggleCustom(this, 6)">
+                                <option value="25000">25000</option>
+                                <option value="28000" selected="selected">28000</option>
+                                <option value="30000">30000</option>
+                                <option value="31000">31000</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" id="custom_basic_6" class="custom-basic-input hidden" placeholder="Enter" value="">
+                        </td>
+                        <td>
+                            <select class="m-c-da">
+                                <option value="50">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58" selected="selected">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-w-da">
+                                <option value="50" selected="selected">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-c-hra" onchange="toggleHRACustom(this, 'c')">
+                                <option value="4">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5" selected="selected">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                        <td>
+                            <select class="m-w-hra" onchange="toggleHRACustom(this, 'w')">
+                                <option value="4" selected="selected">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                    </tr>
+                    <!-- Row 8: Aug (DA 58% Default) -->
+                    <tr data-month="August-2025" data-index="7">
+                        <td><input type="checkbox" class="m-check" id="chk_7" checked="checked"></td>
+                        <td><b>August-2025</b></td>
+                        <td>
+                            <select class="m-basic" onchange="toggleCustom(this, 7)">
+                                <option value="25000">25000</option>
+                                <option value="28000" selected="selected">28000</option>
+                                <option value="30000">30000</option>
+                                <option value="31000">31000</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" id="custom_basic_7" class="custom-basic-input hidden" placeholder="Enter" value="">
+                        </td>
+                        <td>
+                            <select class="m-c-da">
+                                <option value="50">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58" selected="selected">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-w-da">
+                                <option value="50" selected="selected">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-c-hra" onchange="toggleHRACustom(this, 'c')">
+                                <option value="4">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5" selected="selected">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                        <td>
+                            <select class="m-w-hra" onchange="toggleHRACustom(this, 'w')">
+                                <option value="4" selected="selected">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                    </tr>
+                    <!-- Row 9: Sept (DA 58% Default) -->
+                    <tr data-month="September-2025" data-index="8">
+                        <td><input type="checkbox" class="m-check" id="chk_8" checked="checked"></td>
+                        <td><b>September-2025</b></td>
+                        <td>
+                            <select class="m-basic" onchange="toggleCustom(this, 8)">
+                                <option value="25000">25000</option>
+                                <option value="28000" selected="selected">28000</option>
+                                <option value="30000">30000</option>
+                                <option value="31000">31000</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" id="custom_basic_8" class="custom-basic-input hidden" placeholder="Enter" value="">
+                        </td>
+                        <td>
+                            <select class="m-c-da">
+                                <option value="50">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58" selected="selected">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-w-da">
+                                <option value="50" selected="selected">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-c-hra" onchange="toggleHRACustom(this, 'c')">
+                                <option value="4">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5" selected="selected">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                        <td>
+                            <select class="m-w-hra" onchange="toggleHRACustom(this, 'w')">
+                                <option value="4" selected="selected">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                    </tr>
+                    <!-- Row 10: Oct (DA 58% Default) -->
+                    <tr data-month="October-2025" data-index="9">
+                        <td><input type="checkbox" class="m-check" id="chk_9" checked="checked"></td>
+                        <td><b>October-2025</b></td>
+                        <td>
+                            <select class="m-basic" onchange="toggleCustom(this, 9)">
+                                <option value="25000">25000</option>
+                                <option value="28000" selected="selected">28000</option>
+                                <option value="30000">30000</option>
+                                <option value="31000">31000</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" id="custom_basic_9" class="custom-basic-input hidden" placeholder="Enter" value="">
+                        </td>
+                        <td>
+                            <select class="m-c-da">
+                                <option value="50">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58" selected="selected">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-w-da">
+                                <option value="50" selected="selected">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-c-hra" onchange="toggleHRACustom(this, 'c')">
+                                <option value="4">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5" selected="selected">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                        <td>
+                            <select class="m-w-hra" onchange="toggleHRACustom(this, 'w')">
+                                <option value="4" selected="selected">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                    </tr>
+                    <!-- Row 11: Nov (DA 58% Default) -->
+                    <tr data-month="November-2025" data-index="10">
+                        <td><input type="checkbox" class="m-check" id="chk_10" checked="checked"></td>
+                        <td><b>November-2025</b></td>
+                        <td>
+                            <select class="m-basic" onchange="toggleCustom(this, 10)">
+                                <option value="25000">25000</option>
+                                <option value="28000" selected="selected">28000</option>
+                                <option value="30000">30000</option>
+                                <option value="31000">31000</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" id="custom_basic_10" class="custom-basic-input hidden" placeholder="Enter" value="">
+                        </td>
+                        <td>
+                            <select class="m-c-da">
+                                <option value="50">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58" selected="selected">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-w-da">
+                                <option value="50" selected="selected">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-c-hra" onchange="toggleHRACustom(this, 'c')">
+                                <option value="4">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5" selected="selected">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                        <td>
+                            <select class="m-w-hra" onchange="toggleHRACustom(this, 'w')">
+                                <option value="4" selected="selected">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                    </tr>
+                    <!-- Row 12: Dec (DA 58% Default) -->
+                    <tr data-month="December-2025" data-index="11">
+                        <td><input type="checkbox" class="m-check" id="chk_11" checked="checked"></td>
+                        <td><b>December-2025</b></td>
+                        <td>
+                            <select class="m-basic" onchange="toggleCustom(this, 11)">
+                                <option value="25000">25000</option>
+                                <option value="28000" selected="selected">28000</option>
+                                <option value="30000">30000</option>
+                                <option value="31000">31000</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" id="custom_basic_11" class="custom-basic-input hidden" placeholder="Enter" value="">
+                        </td>
+                        <td>
+                            <select class="m-c-da">
+                                <option value="50">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58" selected="selected">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-w-da">
+                                <option value="50" selected="selected">50%</option>
+                                <option value="55">55%</option>
+                                <option value="58">58%</option>
+                                <option value="60">60%</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="m-c-hra" onchange="toggleHRACustom(this, 'c')">
+                                <option value="4">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5" selected="selected">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                        <td>
+                            <select class="m-w-hra" onchange="toggleHRACustom(this, 'w')">
+                                <option value="4" selected="selected">4%</option>
+                                <option value="5">5%</option>
+                                <option value="6">6%</option>
+                                <option value="7.5">7.5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="others">अन्य (Others)</option>
+                            </select>
+                            <input type="number" class="hra-custom-input hidden" placeholder="%" min="0" max="100" step="0.1">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="btn-panel">
+            <button type="button" class="btn" onclick="generatePDFPreview()">पीडीएफ (PDF) का मिलान और प्रीव्यू करें</button>
+            
+        </div>
+    </div>
+
+    <!-- Screen Preview Area (Acts like an embedded PDF Viewer) -->
+    <div id="previewWrapper" class="hidden">
+        
+        <!-- Controls Bar at top -->
+        <div class="preview-header-bar no-print">
+            <button type="button" class="btn btn-download" onclick="window.print()">Print / Download PDF</button>
+            <button type="button" class="btn btn-back" onclick="closePreview()">वापस एडिटिंग पर जाएं</button>
+        </div>
+
+        <!-- Landscape Sheet Page to represent exactly how it's saved -->
+        <div id="printSection">
+            
+            <!-- Official PDF Styled Header (Fully Matched to Original Design) -->
+            <div class="pdf-header-block">
+                <div class="pdf-header-title">OFFICE - BLOCK EDUCATION OFFICE, <span id="pBlock"></span></div>
+                <div class="pdf-header-row">
+                    <div class="pdf-header-cell"><strong>NAME :</strong> <span id="pName"></span></div>
+                    <div class="pdf-header-cell" style="text-align: right;"><strong>Exclusive Teacher PRAN :</strong> <span id="pPran"></span></div>
+                </div>
+                <div class="pdf-header-row">
+                    <div class="pdf-header-cell"><strong>CLASS :</strong> <span id="pClass"></span></div>
+                    <div class="pdf-header-cell" style="text-align: right;"><strong>SCHOOL NAME :</strong> <span id="pSchool"></span></div>
+                </div>
+                <div class="pdf-header-row">
+                    <div class="pdf-header-cell"><strong>UDISE :</strong> <span id="pUdise"></span></div>
+                    <div class="pdf-header-cell" style="text-align: right;"><strong>DISTRICT :</strong> <span id="pDistrict"></span></div>
+                </div>
+            </div>
+
+            <!-- PDF Official Columns (Col 1 to 15) -->
+            <table class="pdf-table">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Period<br>1</th>
+                        <th colspan="4">Claimed Amount</th>
+                        <th colspan="4">Drawn Amount</th>
+                        <th colspan="6">Difference Payable</th>
+                    </tr>
+                    <tr>
+                        <th>PAY<br>2</th>
+                        <th>D.A.<br>3</th>
+                        <th>H.R.A.<br>(Claimed%)<br>4</th>
+                        <th>TOTAL<br>5</th>
+                        <th>PAY<br>6</th>
+                        <th>D.A.<br>7</th>
+                        <th>H.R.A.<br>8</th>
+                        <th>TOTAL<br>9</th>
+                        <th>PAY<br>10</th>
+                        <th>D.A.<br>11 (3-7)</th>
+                        <th>H.R.A.<br>12 (4-8)</th>
+                        <th>GROSS<br>13 (10+11+12)</th>
+                        <th>NPS/PRAN Deduction<br>14</th>
+                        <th>NET PAY<br>15 (13-14)</th>
+                    </tr>
+                </thead>
+                <tbody id="pdfBody">
+                    <!-- Dynamic verified calculation rows -->
+                </tbody>
+                <tfoot id="pdfFoot">
+                    <!-- Totals go here -->
+                </tfoot>
+            </table>
+
+            <div class="footer-declaration">
+                नोटः प्रमाणित किया जाता है कि इस विपत्र की राशि का भुगतान पूर्व में नहीं किया गया है।
+            </div>
+
+            <div class="pdf-signatures">
+                <div class="sig-block">
+                    शिक्षक का हस्ताक्षर<br><br><br>
+                    (<span id="sName"></span>)
+                </div>
+                <div class="sig-block">
+                    प्रधानाध्यापक का ह०<br>एवं मोहर
+                </div>
+                <div class="sig-block">
+                    प्रखण्ड शिक्षा पदाधिकारी<br>ह० / मोहर
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Bar at bottom -->
+        <div class="preview-header-bar no-print" style="margin-top: 20px;">
+            <button type="button" class="btn btn-download" onclick="window.print()">🖨️ Print / Download PDF</button>
+            <button type="button" class="btn btn-back" onclick="closePreview()">वापस एडिटिंग पर जाएं</button>
+        </div>
+    </div>
+
+    <script>
+        // Toggle HRA custom input
+        function toggleHRACustom(sel, type) {
+            var customInput = sel.nextElementSibling;
+            if (sel.value === 'others') {
+                customInput.classList.remove('hidden');
+                customInput.focus();
+            } else {
+                customInput.classList.add('hidden');
+                customInput.value = '';
+            }
+        }
+
+        // Update month labels when year changes
+        function updateYearLabels() {
+            var year = document.getElementById('tYear').value;
+            var rows = document.querySelectorAll('#monthTable tbody tr');
+            rows.forEach(function(row) {
+                var oldMonth = row.getAttribute('data-month');
+                var monthName = oldMonth.split('-')[0];
+                var newMonth = monthName + '-' + year;
+                row.setAttribute('data-month', newMonth);
+                var bold = row.querySelector('td b');
+                if (bold) bold.textContent = newMonth;
+            });
+        }
+
+        // Toggle custom basic input
+        function toggleCustom(sel, idx) {
+            var customInput = document.getElementById('custom_basic_' + idx);
+            if (sel.value === 'others') {
+                customInput.classList.remove('hidden');
+                customInput.focus();
+            } else {
+                customInput.classList.add('hidden');
+                customInput.value = '';
+            }
+        }
+
+        // Close preview, go back to form
+        function closePreview() {
+            document.getElementById('previewWrapper').classList.add('hidden');
+            document.getElementById('mainFormContainer').classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        // Main function: validate, calculate, render preview
+        function generatePDFPreview() {
+            var errBox = document.getElementById('errorBox');
+            errBox.classList.add('hidden');
+            errBox.textContent = '';
+
+            // Read header fields
+            var name     = document.getElementById('tName').value.trim();
+            var cls      = document.getElementById('tClass').value.trim();
+            var pran     = document.getElementById('tPran').value.trim();
+            var school   = document.getElementById('tSchool').value.trim();
+            var udise    = document.getElementById('tUdise').value.trim();
+            var block    = document.getElementById('tBlock').value.trim();
+            var district = document.getElementById('tDistrict').value.trim();
+
+            // Validation
+            if (!name || !pran || !school) {
+                errBox.textContent = '⚠️ कृपया शिक्षक का नाम, PRAN नंबर और विद्यालय का नाम अवश्य भरें।';
+                errBox.classList.remove('hidden');
+                window.scrollTo(0, 0);
+                return;
+            }
+
+            // Collect rows
+            var rows = document.querySelectorAll('#monthTable tbody tr');
+            var dataRows = [];
+
+            rows.forEach(function(row) {
+                var chk = row.querySelector('.m-check');
+                if (!chk || !chk.checked) return;
+
+                var idx        = row.getAttribute('data-index');
+                var month      = row.getAttribute('data-month');
+                var basicSel   = row.querySelector('.m-basic');
+                var basicVal   = basicSel.value === 'others'
+                                 ? parseFloat(document.getElementById('custom_basic_' + idx).value) || 0
+                                 : parseFloat(basicSel.value);
+                var cDAPct     = parseFloat(row.querySelector('.m-c-da').value) / 100;
+                var wDAPct     = parseFloat(row.querySelector('.m-w-da').value) / 100;
+                var cHRASel    = row.querySelector('.m-c-hra');
+                var cHRAVal    = cHRASel.value === 'others'
+                                 ? (parseFloat(cHRASel.nextElementSibling.value) || 0)
+                                 : parseFloat(cHRASel.value);
+                var cHRAPct    = cHRAVal / 100;
+                var wHRASel    = row.querySelector('.m-w-hra');
+                var wHRAVal    = wHRASel.value === 'others'
+                                 ? (parseFloat(wHRASel.nextElementSibling.value) || 0)
+                                 : parseFloat(wHRASel.value);
+                var wHRAPct    = wHRAVal / 100;
+
+                // Claimed
+                var cPay  = basicVal;
+                var cDA   = Math.round(basicVal * cDAPct);
+                var cHRA  = Math.round(basicVal * cHRAPct);
+                var cTot  = cPay + cDA + cHRA;
+
+                // Drawn (PAY same as claimed)
+                var wPay  = basicVal;
+                var wDA   = Math.round(basicVal * wDAPct);
+                var wHRA  = Math.round(basicVal * wHRAPct);
+                var wTot  = wPay + wDA + wHRA;
+
+                // Difference Payable
+                var dPay  = cPay - wPay;          // Col 10 (always 0)
+                var dDA   = cDA - wDA;             // Col 11
+                var dHRA  = cHRA - wHRA;           // Col 12
+                var gross = dPay + dDA + dHRA;     // Col 13
+
+                // NPS/PRAN Deduction = (Claimed Pay + Claimed DA) * 10% - (Drawn Pay + Drawn DA) * 10%
+                // = (cPay + cDA - wPay - wDA) * 10% = (dPay + dDA) * 10%
+                // January: NPS was not deducted, so 0
+                var nps   = (month === 'January-2025') ? 0 : Math.round((dPay + dDA) * 0.10); // Col 14
+                var net   = gross - nps;                       // Col 15
+
+                dataRows.push({
+                    month: month,
+                    cPay: cPay, cDA: cDA, cHRA: cHRA, cTot: cTot,
+                    wPay: wPay, wDA: wDA, wHRA: wHRA, wTot: wTot,
+                    dPay: dPay, dDA: dDA, dHRA: dHRA,
+                    gross: gross, nps: nps, net: net
+                });
+            });
+
+            if (dataRows.length === 0) {
+                errBox.textContent = '⚠️ कम से कम एक महीना चुनें।';
+                errBox.classList.remove('hidden');
+                return;
+            }
+
+            // Populate header in preview
+            document.getElementById('pName').textContent     = name;
+            document.getElementById('pClass').textContent    = cls;
+            document.getElementById('pPran').textContent     = pran;
+            document.getElementById('pSchool').textContent   = school;
+            document.getElementById('pUdise').textContent    = udise;
+            document.getElementById('pBlock').textContent    = block.toUpperCase();
+            document.getElementById('pDistrict').textContent = district;
+            document.getElementById('sName').textContent     = name;
+
+            // Build tbody
+            var tbody = document.getElementById('pdfBody');
+            tbody.innerHTML = '';
+            var totals = { cPay:0,cDA:0,cHRA:0,cTot:0,wPay:0,wDA:0,wHRA:0,wTot:0,dPay:0,dDA:0,dHRA:0,gross:0,nps:0,net:0 };
+
+            dataRows.forEach(function(r) {
+                var tr = document.createElement('tr');
+                tr.innerHTML =
+                    '<td><b>' + r.month + '</b></td>' +
+                    '<td>' + r.cPay + '</td>' +
+                    '<td>' + r.cDA  + '</td>' +
+                    '<td>' + r.cHRA + '</td>' +
+                    '<td>' + r.cTot + '</td>' +
+                    '<td>' + r.wPay + '</td>' +
+                    '<td>' + r.wDA  + '</td>' +
+                    '<td>' + r.wHRA + '</td>' +
+                    '<td>' + r.wTot + '</td>' +
+                    '<td>' + r.dPay + '</td>' +
+                    '<td>' + r.dDA  + '</td>' +
+                    '<td>' + r.dHRA + '</td>' +
+                    '<td><b>' + r.gross + '</b></td>' +
+                    '<td>' + r.nps  + '</td>' +
+                    '<td><b>' + r.net   + '</b></td>';
+                tbody.appendChild(tr);
+
+                // Accumulate totals
+                for (var k in totals) { totals[k] += r[k]; }
+            });
+
+            // Totals row
+            var tfoot = document.getElementById('pdfFoot');
+            tfoot.innerHTML = '';
+            var tfr = document.createElement('tr');
+            tfr.style.fontWeight = 'bold';
+            tfr.style.backgroundColor = '#f3f4f6';
+            tfr.innerHTML =
+                '<td><b>Total</b></td>' +
+                '<td>' + totals.cPay + '</td>' +
+                '<td>' + totals.cDA  + '</td>' +
+                '<td>' + totals.cHRA + '</td>' +
+                '<td>' + totals.cTot + '</td>' +
+                '<td>' + totals.wPay + '</td>' +
+                '<td>' + totals.wDA  + '</td>' +
+                '<td>' + totals.wHRA + '</td>' +
+                '<td>' + totals.wTot + '</td>' +
+                '<td>' + totals.dPay + '</td>' +
+                '<td>' + totals.dDA  + '</td>' +
+                '<td>' + totals.dHRA + '</td>' +
+                '<td><b>' + totals.gross + '</b></td>' +
+                '<td>' + totals.nps  + '</td>' +
+                '<td><b>' + totals.net   + '</b></td>';
+            tfoot.appendChild(tfr);
+
+            // Show preview, hide form
+            document.getElementById('mainFormContainer').classList.add('hidden');
+            document.getElementById('previewWrapper').classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+    </script>
+
+</body></html>
